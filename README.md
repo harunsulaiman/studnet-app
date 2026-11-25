@@ -29,19 +29,19 @@ Copy `.env.example` to `.env` before local setup. Docker must be running for Pos
 - `demo@studnet.app` / `StudnetDemo123!`
 - `harun881@yahoo.com` / `harun881` (local studNet account only)
 
-## Production / Haiku deployment
+## Production deployment
 
-Use the repository root as the Haiku project root. Haiku detects the Next.js workspace at `apps/web`; `vercel.json` pins the install/build/output directories for npm workspaces.
+The repository root is the deployment project root; Next.js builds from the `apps/web` workspace. `vercel.json` pins the install/build/output commands for npm workspaces. The production web build serves the NestJS API in-process through `apps/web/app/api/[path]/route.ts`, so no separate API container is required.
 
-Set these Haiku project environment variables:
+Set these deployment environment variables:
 
 - `DATABASE_URL` — managed PostgreSQL connection string (pooled URL is recommended)
 - `REDIS_URL` — managed Redis connection string (optional for web-only deployment; required for worker)
 - `JWT_ACCESS_SECRET` — long random value (32+ bytes)
 - `JWT_REFRESH_SECRET` — a second independent long random value
-- `APP_ORIGIN` — the deployed HTTPS origin (for example `https://<project>.vercel.app`)
+- `APP_ORIGIN` — the deployed HTTPS origin
 - `API_ORIGIN` — same as `APP_ORIGIN` (the web app calls the NestJS API through its own `/api/v1` proxy)
-- `SESSION_COOKIE_DOMAIN` — leave unset in Haiku so cookies bind to the deployment host
+- `SESSION_COOKIE_DOMAIN` — leave unset so cookies bind to the deployment host
 - `SESSION_COOKIE_SECURE=true`
 
 Run database migrations once after the managed database is available:
@@ -51,7 +51,7 @@ npm run prisma:deploy
 npm run db:seed
 ```
 
-Then deploy. The web deployment does not run a separate API container; Haiku serverless functions execute the NestJS app from `api/[path]/route.ts`. `apps/worker` should be deployed separately if background jobs are required.
+Deploy `apps/worker` separately if background jobs are required.
 
 ## Security defaults
 
@@ -66,7 +66,7 @@ Then deploy. The web deployment does not run a separate API container; Haiku ser
 
 - The composer attaches selected photo/video metadata, but binary upload/storage is not implemented.
 - File-backed local fallback users are development-only; production deployments must set `DATABASE_URL` and JWT secrets, then run migrations and seed.
-- Haiku deployment requires an authenticated Haiku CLI/account and a GitHub repository/remote; these cannot be supplied by the application code.
+- Deployment requires an authenticated hosting account and a GitHub repository/remote; these cannot be supplied by the application code.
 
 ## Verification
 
