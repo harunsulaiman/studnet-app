@@ -4,3 +4,4 @@ apps/api/dist
 apps/web/.next
 apps/worker/dist
 *.log
+.neon-store.json
