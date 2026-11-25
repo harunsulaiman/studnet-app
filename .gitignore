@@ -5,7 +5,8 @@ dist/
 .env.local
 .env.*.local
 *.log
-coverage/
+playwright-report/
+test-results/
 .DS_Store
 *.tsbuildinfo
 audit-prod.json
