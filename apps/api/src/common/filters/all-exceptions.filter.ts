@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
+import * as Sentry from '@sentry/node';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -25,6 +26,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       `[${requestId}] ${request.method} ${request.url}`,
       exception instanceof Error ? exception.stack : String(exception),
     );
+    Sentry.captureException(exception, { extra: { requestId, method: request.method, url: request.url } });
     response.status(500).json({
       error: { statusCode: 500, message: 'Internal server error' },
       meta: { requestId, timestamp: new Date().toISOString() },

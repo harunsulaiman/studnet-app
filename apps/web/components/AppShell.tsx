@@ -10,11 +10,9 @@ import {
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import { getNotifications, getProfile, type ProfileItem } from '@/lib/api';
 
-const fallbackProfile: ProfileItem = {
- id: 'guest', name: 'Student', email: 'guest@studnet.app', handle: '@student', initials: 'SN',
- verified: false, verification: 'UNVERIFIED', university: null, department: null, programme: null,
- level: null, bio: null, avatarUrl: null, posts: 0, likes: 0, answers: 0, resources: 0, saved: 0,
-};
+
+
+
 
 const navItems = [
  { href: '/', label: 'Feed', icon: Home },
@@ -43,10 +41,10 @@ export function AppShell({ children }: { children: ReactNode }) {
  const menuRef = useRef<HTMLDivElement>(null);
 
  useEffect(() => {
- void Promise.all([getProfile(), getNotifications()]).then(([person, notifications]) => {
- setProfile(person ?? fallbackProfile);
- setUnread(notifications.filter((item) => !item.read).length);
- });
+  void Promise.all([getProfile(), getNotifications()]).then(([person, notifications]) => {
+    setProfile(person);
+    setUnread(notifications.filter((item) => !item.read).length);
+  }).catch(() => { setProfile(null); setUnread(0); });
  }, [pathname]);
 
  useEffect(() => {

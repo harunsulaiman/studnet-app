@@ -6,20 +6,14 @@ import { BadgeCheck, Bookmark, FileText, LogOut, MessageCircle, Settings, Shield
 import '@/app/ui.css';
 import { getProfile, logoutUser, type ProfileItem } from '@/lib/api';
 
-const fallback: ProfileItem = {
-  id: 'demo', name: 'Ada Okafor', email: 'demo@studnet.app', handle: '@adaokafor', initials: 'AD',
-  verified: true, verification: 'INSTITUTION_VERIFIED', university: 'University of Lagos',
-  department: 'Computer Science', programme: 'BSc Computer Science', level: 300,
-  bio: 'Building useful things with students across campus.', avatarUrl: null,
-  posts: 18, likes: 64, answers: 8, resources: 12, saved: 9,
-};
-
 export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileItem | null>(null);
-  const load = useCallback(async () => { setProfile(await getProfile()); }, []);
+ const [loading, setLoading] = useState(true);
+  const load = useCallback(async () => { try { setProfile(await getProfile()); } finally { setLoading(false); } }, []);
   useEffect(() => { void load(); }, [load]);
 
-  const data = profile ?? fallback;
+  if (!profile) return <div className="page">{loading ? "Loading" : "No profile available."}</div>;
+ const data = profile;
   const stats = [
     { icon: <FileText size={18} />, label: 'Posts shared', value: data.posts },
     { icon: <MessageCircle size={18} />, label: 'Answers', value: data.answers },

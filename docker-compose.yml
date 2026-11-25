@@ -36,23 +36,23 @@ services:
       dockerfile: apps/api/Dockerfile
     container_name: studnet-api
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       DATABASE_URL: postgresql://studnet:studnet_dev_password@postgres:5432/studnet?schema=public
       REDIS_URL: redis://redis:6379
       APP_ORIGIN: http://localhost:3000
       API_ORIGIN: http://localhost:4000
-      PORT: 4000
+      PORT: 8080
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-in-production-access}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-in-production-refresh}
       SESSION_COOKIE_SECURE: 'true'
-    command: sh -c "npx prisma migrate deploy && npm run prisma:seed -w @studnet/api && node apps/api/dist/main.js"
+    command: sh -c "npx prisma migrate deploy && node apps/api/dist/main.js"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     ports:
-      - '4000:4000'
+      - '8080:8080'
 
   worker:
     profiles: [production]
@@ -61,7 +61,7 @@ services:
       dockerfile: apps/worker/Dockerfile
     container_name: studnet-worker
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       REDIS_URL: redis://redis:6379
     depends_on:
       redis:
@@ -74,8 +74,8 @@ services:
       dockerfile: apps/web/Dockerfile
     container_name: studnet-web
     environment:
-      NODE_ENV: production
-      API_ORIGIN: http://api:4000/api
+      NODE_ENV: development
+      API_ORIGIN: http://api:8080
       NEXT_PUBLIC_API_ORIGIN: 
     depends_on:
       - api

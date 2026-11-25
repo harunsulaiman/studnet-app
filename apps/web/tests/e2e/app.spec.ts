@@ -7,11 +7,11 @@ test('guest pages load without authentication', async ({ page }) => {
   }
 });
 
-test('local login works through the Next.js proxy', async ({ page, request }) => {
+test('local login must fail without a real account', async ({ page, request }) => {
   const response = await request.post('/api/v1/auth/login', {
-    data: { email: 'harun881@yahoo.com', password: 'harun881' },
+    data: { email: 'e2e+unique@example.invalid', password: 'not-a-real-password' },
   });
-  expect(response.ok()).toBeTruthy();
+  expect(response.ok()).toBeFalsy();
   await page.goto('/profile');
   await expect(page.locator('body')).not.toHaveText(/Internal Server Error/);
 });

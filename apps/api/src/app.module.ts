@@ -5,6 +5,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { UploadsModule } from './uploads/uploads.module';
 import { ContentModule } from './content/content.module';
 
 @Module({
@@ -20,7 +21,8 @@ import { ContentModule } from './content/content.module';
     HealthModule,
     AuthModule,
     ContentModule,
+    UploadsModule,
   ],
- providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

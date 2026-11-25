@@ -1,21 +1,11 @@
 import type { NextConfig } from 'next';
 
-const apiOrigin = process.env.API_ORIGIN ?? 'http://localhost:4000';
-const useServerApi = process.env.NEXT_SERVER_API === 'true';
+const apiOrigin = process.env.NEXT_PUBLIC_API_ORIGIN ?? process.env.API_ORIGIN ?? 'http://localhost:4000';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  serverExternalPackages: [
-    '@nestjs/core',
-    '@nestjs/common',
-    '@nestjs/platform-express',
-    '@prisma/client',
-    'argon2',
-  ],
-
   async rewrites() {
-    if (useServerApi) return [];
     return [{ source: '/api/v1/:path*', destination: `${apiOrigin}/api/v1/:path*` }];
   },
   async headers() {
@@ -34,3 +24,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+

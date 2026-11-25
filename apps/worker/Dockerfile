@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY apps ./apps
 COPY packages ./packages
-RUN npm install
+RUN npm ci
 
 FROM node:22-alpine AS build
 WORKDIR /app

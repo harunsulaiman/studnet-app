@@ -23,7 +23,7 @@ export class TokenService {
       },
     );
 
-    const refreshToken = this.jwtService.sign({ sub: userId, type: 'refresh' }, { secret: JWT_REFRESH_SECRET || JWT_ACCESS_SECRET, expiresIn: '30d' });
+    const refreshToken = this.jwtService.sign({ sub: userId, type: 'refresh' }, { secret: JWT_REFRESH_SECRET, expiresIn: '30d' });
     const refreshTokenHash = this.hashToken(refreshToken);
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 

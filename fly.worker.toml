@@ -1,0 +1,16 @@
+app = 'studnet-worker'
+primary_region = 'iad'
+
+[build]
+  dockerfile = 'apps/worker/Dockerfile'
+
+[env]
+  NODE_ENV = 'production'
+
+[processes]
+  app = 'node apps/worker/dist/main.js'
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1

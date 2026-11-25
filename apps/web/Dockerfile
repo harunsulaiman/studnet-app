@@ -3,14 +3,16 @@ WORKDIR /app
 COPY package*.json ./
 COPY apps ./apps
 COPY packages ./packages
-RUN npm install
+RUN npm ci
 
-FROM node:22-alpine AS build\nARG NEXT_PUBLIC_API_ORIGIN=http://localhost:4000\nENV NEXT_PUBLIC_API_ORIGIN=$NEXT_PUBLIC_API_ORIGIN
+FROM node:22-alpine AS build
+ARG NEXT_PUBLIC_API_ORIGIN=http://localhost:4000
+ENV NEXT_PUBLIC_API_ORIGIN=$NEXT_PUBLIC_API_ORIGIN
+ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build:shared && npm run build:web
-ENV NEXT_TELEMETRY_DISABLED=1
 
 FROM node:22-alpine AS runtime
 WORKDIR /app
