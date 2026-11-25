@@ -1,0 +1,325 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum VerificationState {
+  UNVERIFIED
+  EMAIL_VERIFIED
+  INSTITUTION_EMAIL_VERIFIED
+  STUDENT_ID_SUBMITTED
+  CAMPUS_REP_VERIFIED
+  INSTITUTION_VERIFIED
+  ORGANIZATION_VERIFIED
+}
+
+enum TrustLabel {
+  STUDENT_CREATED
+  CLASS_REP_VERIFIED
+  DEPARTMENT_VERIFIED
+  INSTITUTION_VERIFIED
+  ORGANIZATION_VERIFIED
+  SPONSORED
+}
+
+enum ProfileVisibility {
+  PUBLIC
+  CAMPUS
+  CONNECTIONS
+  PRIVATE
+}
+
+enum Role {
+  STUDENT
+  CLASS_REP
+  COURSE_ADMIN
+  DEPARTMENT_ADMIN
+  CLUB_ADMIN
+  ORGANIZATION_ADMIN
+  MODERATOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum PostType {
+  GENERAL
+  ACADEMIC
+  PROJECT
+  CAMPUS
+  FORUM
+}
+
+enum OpportunityType {
+  INTERNSHIP
+  SCHOLARSHIP
+  GRANT
+  EVENT
+  RESEARCH
+  JOB
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email String @unique
+name String?
+handle String? @unique
+  passwordHash   String
+  displayName    String
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  profile        Profile?
+  roles          RoleAssignment[]
+  sessions       Session[]
+  verificationRecords VerificationRecord[]
+  posts          Post[]
+  likes          PostLike[]
+  saves          PostSave[]
+  forumReplies   ForumReply[]
+  conversations  ConversationParticipant[]
+  messages       Message[]
+  resources      CourseResource[]
+  notifications  Notification[]
+  followerLinks  Follow[]  @relation("Following")
+  followerOf     Follow[]  @relation("Followers")
+}
+
+model Follow {
+  id           String   @id @default(cuid())
+  followerId   String
+  follower     User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId  String
+  following    User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+}
+
+model Profile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio          String?
+  avatarUrl    String?
+  coverUrl     String?
+  verification VerificationState @default(UNVERIFIED)
+  visibility   ProfileVisibility @default(CAMPUS)
+  universityId String?
+  facultyId    String?
+  departmentId String?
+  programmeId  String?
+  level        Int?
+  createdAt    DateTime @default(now())
+  university   University? @relation(fields: [universityId], references: [id])
+  faculty      Faculty?    @relation(fields: [facultyId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id])
+  programme    Programme?  @relation(fields: [programmeId], references: [id])
+}
+
+model University {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  shortName  String?
+  createdAt  DateTime @default(now())
+  profiles   Profile[]
+  departments Department[]
+  faculties  Faculty[]
+  programmes Programme[]
+}
+
+model Faculty {
+  id          String   @id @default(cuid())
+  name        String
+  universityId String
+  university  University @relation(fields: [universityId], references: [id])
+  profiles    Profile[]
+  departments Department[]
+}
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String
+  facultyId   String?
+  universityId String?
+  faculty     Faculty?   @relation(fields: [facultyId], references: [id])
+  university  University? @relation(fields: [universityId], references: [id])
+  profiles    Profile[]
+  programmes  Programme[]
+}
+
+model Programme {
+  id          String   @id @default(cuid())
+  name        String
+  departmentId String?
+  universityId String?
+  department  Department? @relation(fields: [departmentId], references: [id])
+  university  University? @relation(fields: [universityId], references: [id])
+  profiles    Profile[]
+}
+
+model RoleAssignment {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role
+  scope     String?
+  createdAt DateTime @default(now())
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshHash String @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+}
+
+model VerificationRecord {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind         String
+  status       String
+  trustLabel   TrustLabel @default(STUDENT_CREATED)
+  note         String?
+  createdAt    DateTime @default(now())
+}
+
+model Post {
+  id           String   @id @default(cuid())
+  authorId     String
+  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  type         PostType @default(GENERAL)
+  typeLabel    String
+  body         String
+  mediaKind    String?
+  mediaLabel   String?
+  hashtags     String[]
+  campusScoped Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  likes        PostLike[]
+  saves        PostSave[]
+  replies      ForumReply[]
+
+  @@index([createdAt])
+  @@index([authorId])
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model PostSave {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model ForumReply {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+}
+
+model Conversation {
+  id           String   @id @default(cuid())
+  name         String
+  isGroup      Boolean  @default(false)
+  pinned       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  id             String   @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadAt     DateTime?
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  body           String
+  createdAt      DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model Opportunity {
+  id           String   @id @default(cuid())
+  title        String
+  organization String
+  type         OpportunityType
+  location     String
+  mode         String
+  deadline     DateTime?
+  tags         String[]
+  matchScore   Int      @default(0)
+  summary      String
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model CourseResource {
+  id          String   @id @default(cuid())
+  title       String
+  courseCode  String
+  type        String
+  sizeLabel   String?
+  ownerId     String?
+  owner       User?     @relation(fields: [ownerId], references: [id])
+
+  @@index([courseCode])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String
+  title     String
+  body      String
+  href      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

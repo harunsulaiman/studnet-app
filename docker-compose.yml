@@ -1,0 +1,87 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: studnet-postgres
+    environment:
+      POSTGRES_DB: studnet
+      POSTGRES_USER: studnet
+      POSTGRES_PASSWORD: studnet_dev_password
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U studnet -d studnet']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: studnet-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    profiles: [production]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: studnet-api
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://studnet:studnet_dev_password@postgres:5432/studnet?schema=public
+      REDIS_URL: redis://redis:6379
+      APP_ORIGIN: http://localhost:3000
+      API_ORIGIN: http://localhost:4000
+      PORT: 4000
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-in-production-access}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-in-production-refresh}
+      SESSION_COOKIE_SECURE: 'true'
+    command: sh -c "npx prisma migrate deploy && npm run prisma:seed -w @studnet/api && node apps/api/dist/main.js"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - '4000:4000'
+
+  worker:
+    profiles: [production]
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    container_name: studnet-worker
+    environment:
+      NODE_ENV: production
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  web:
+    profiles: [production]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: studnet-web
+    environment:
+      NODE_ENV: production
+      API_ORIGIN: http://api:4000/api
+      NEXT_PUBLIC_API_ORIGIN: 
+    depends_on:
+      - api
+    ports:
+      - '3000:3000'
+
+volumes:
+  postgres_data:
+  redis_data:
