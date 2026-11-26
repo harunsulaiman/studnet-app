@@ -32,7 +32,7 @@ Deploy the API and worker as persistent Fly.io services using `fly.api.toml` and
 validates the workspace with `npm run typecheck` and `npm run build`, runs `prisma migrate deploy` on the
 API service, and deploys the backend services. Set `FLY_API_TOKEN` as a GitHub secret.
 
-The frontend is configured for Haiku. You will install its Cloudflare Pages GitHub integration manually; the final domain is not set yet. Once it is known, add it to `APP_ORIGIN` on the API and set `NEXT_PUBLIC_API_ORIGIN`, `NEXT_PUBLIC_SENTRY_DSN`, and `API_ORIGIN` for the frontend deployment.
+The frontend is configured for vercel. You will install its Cloudflare Pages GitHub integration manually; the final domain is not set yet. Once it is known, add it to `APP_ORIGIN` on the API and set `NEXT_PUBLIC_API_ORIGIN`, `NEXT_PUBLIC_SENTRY_DSN`, and `API_ORIGIN` for the frontend deployment.
 
 Required API secrets (Fly secrets): `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `REDIS_URL`,
 `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `APP_ORIGIN`, `API_ORIGIN`, `SENTRY_DSN`, `R2_ACCOUNT_ID`,
